@@ -158,7 +158,7 @@ app.controller('conkieController', function($scope, $interval, $timeout) {
 				// .stats.power {{{
 				if ($scope.stats.power) {
 					$scope.stats.battery = $scope.stats.power.find(function(dev) {
-						return (_.contains(options.mainBattery, dev.device));
+						return (_.includes(options.mainBattery, dev.device));
 					});
 					if ($scope.stats.battery) $scope.charts.battery.series[0].data.push([now, $scope.stats.battery.percent]);
 				}

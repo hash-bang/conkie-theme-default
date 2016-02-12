@@ -67,6 +67,15 @@ app.filter('duration', function() {
 
 		var out = '';
 
+		var years = duration.years();
+		if (years) out += years + 'Y ';
+
+		var months = duration.months();
+		if (months) out += months + 'M ';
+
+		var days = duration.days();
+		if (days) out += days + 'd ';
+
 		var hours = duration.hours();
 		if (hours) out += hours + 'h ';
 

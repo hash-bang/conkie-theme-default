@@ -34,6 +34,14 @@ h1, h2 {
 /* }}} */
 /* }}} */
 
+/* Crop grid item text area {{{ */
+.col-xs-4 {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+/* }}} */
+
 /* Row padding {{{ */
 .highcharts-container {
 	margin-top: 2px;

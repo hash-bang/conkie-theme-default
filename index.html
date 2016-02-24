@@ -39,11 +39,11 @@
 				<div class="col-xs-5 text-left text-heading">Battery banked</div>
 				<div class="col-xs-7 text-right">{{stats.battery.remainingTime | duration}}</div>
 			</div>
-			<div ng-if="stats.battery.status != 'charging' && stats.battery.percent < 100" class="row">
+			<div ng-if="stats.battery.status != 'charging' && stats.battery.percent < 100 && stats.battery.remainingTime < Infinity" class="row">
 				<div class="col-xs-5 text-left text-heading">Remaining time</div>
 				<div class="col-xs-7 text-right">{{stats.battery.remainingTime | duration}}</div>
 			</div>
-			<div ng-if="stats.battery.status != 'charging' && stats.battery.percent < 100" class="row">
+			<div ng-if="stats.battery.status != 'charging' && stats.battery.percent < 100 && stats.battery.remainingTime < Infinity" class="row">
 				<div class="col-xs-5 text-left text-heading">Full charge time</div>
 				<div class="col-xs-7 text-right">{{stats.battery.remainingChargingTime | duration}}</div>
 			</div>

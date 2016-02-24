@@ -24,7 +24,7 @@
 		<div ng-if="stats.battery">
 			<h1 class="text-rule">
 				Power
-				{{stats.battery.status != 'charging' ? '(DECHARGING)' : ''}}
+				{{stats.battery.status == 'discharging' ? '(DECHARGING)' : ''}}
 			</h1>
 			<div class="row">
 				<div class="col-xs-8">

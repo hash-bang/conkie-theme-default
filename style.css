@@ -34,6 +34,21 @@ h1, h2 {
 /* }}} */
 /* }}} */
 
+/* Crop grid item text area {{{ */
+.col-xs-4 {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+/* }}} */
+
+/* Row padding {{{ */
+.highcharts-container {
+	margin-top: 2px;
+	margin-bottom: 10px;
+}
+/* }}} */
+
 /* .group-spacing - if two occurances are next to each other add vertical spacing {{{ */
 .group-spacing + .group-spacing {
 	margin-top: 10px;

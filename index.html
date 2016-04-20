@@ -36,12 +36,16 @@
 				</div>
 			</div>
 			<div ng-if="stats.battery.status == 'charging'" class="row">
+				<div class="col-xs-5 text-left text-heading">Battery charging</div>
+				<div class="col-xs-7 text-right">{{stats.battery.remainingChargingTime | duration}}</div>
+			</div>
+			<div ng-if="stats.battery.status == 'charging'" class="row">
 				<div class="col-xs-5 text-left text-heading">Battery banked</div>
 				<div class="col-xs-7 text-right">{{stats.battery.remainingTime | duration}}</div>
 			</div>
-			<div ng-if="stats.battery.status != 'charging'" class="row">
-				<div class="col-xs-5 text-left text-heading">Battery charging</div>
-				<div class="col-xs-7 text-right">{{stats.battery.remainingChargingTime | duration}}</div>
+			<div ng-if="stats.battery.status == 'discharging'" class="row">
+				<div class="col-xs-5 text-left text-heading">Battery remaining</div>
+				<div class="col-xs-7 text-right">{{stats.battery.remainingTime | duration}}</div>
 			</div>
 			<div class="row">
 				<div class="col-xs-5 text-left text-heading">Uptime</div>

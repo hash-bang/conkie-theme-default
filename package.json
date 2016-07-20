@@ -14,13 +14,13 @@
   "author": "Matt Carter <m@ttcarter.com> (https://github.com/hash-bang)",
   "license": "MIT",
   "dependencies": {
-    "angular": "^1.4.9",
+    "angular": "^1.5.7",
     "bootstrap": "^3.3.6",
-    "font-awesome": "^4.5.0",
-    "highcharts": "^4.2.1",
+    "font-awesome": "^4.6.3",
+    "highcharts": "^4.2.5",
     "highcharts-ng": "0.0.11",
-    "jquery": "^2.2.0",
-    "lodash": "^4.3.0",
-    "moment": "^2.11.1"
+    "jquery": "^3.1.0",
+    "lodash": "^4.13.1",
+    "moment": "^2.14.1"
   }
 }

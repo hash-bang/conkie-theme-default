@@ -59,7 +59,7 @@ h1, h2 {
 .picture {
 	display: block;
 	position: relative;
-	background: url('file:///home/mc/.conky/chem-Glitch/lsd.png') no-repeat top left;
+	background: url('chem.png') no-repeat top left;
 	background-size: 100%;
 	width: 190px;
 	height: 309px;

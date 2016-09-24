@@ -55,8 +55,8 @@ var app = angular.module('app', [
 /**
 * Format a given number of seconds as a human readable duration
 * e.g. 65 => '1m 5s'
-* @param number value The value to process
-* @return string The formatted value
+* @param {number} value The number of seconds to process
+* @return {string} The formatted value
 */
 app.filter('duration', function() {
 	return function(value) {
@@ -93,9 +93,9 @@ app.filter('duration', function() {
 /**
 * Return a formatted number as a file size
 * e.g. 0 => 0B, 1024 => 1 kB
-* @param mixed value The value to format
-* @param boolean forceZero Whether the filter should return '0 B' if it doesnt know what to do
-* @return string The formatted value
+* @param {mixed} value The value to format
+* @param {boolean} forceZero Whether the filter should return '0 B' if it doesnt know what to do
+* @return {string} The formatted value
 */
 app.filter('byteSize', function() {
 	return function(value, forceZero) {
@@ -125,8 +125,8 @@ app.filter('byteSize', function() {
 
 /**
 * Return a number as a formatted percentage
-* @param mixed value The value to format
-* @return string The formatted value
+* @param {mixed} value The value to format
+* @return {string} The formatted value
 */
 app.filter('percent', function() {
 	return function(value) {

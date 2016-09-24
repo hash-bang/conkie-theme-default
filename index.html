@@ -53,6 +53,10 @@
 				<div class="col-xs-5 text-left text-heading">Battery remaining</div>
 				<div class="col-xs-7 text-right">{{stats.battery.remainingTime | duration}}</div>
 			</div>
+			<div ng-if="stats.battery.status == 'discharging' && stats.battery.dischargeTime" class="row">
+				<div class="col-xs-5 text-left text-heading">On battery for</div>
+				<div class="col-xs-7 text-right">{{stats.battery.dischargeTime | duration}}</div>
+			</div>
 			<div class="row">
 				<div class="col-xs-5 text-left text-heading">Uptime</div>
 				<div class="col-xs-7 text-right">{{stats.system.uptime | duration}}</div>

@@ -252,20 +252,24 @@ app.controller('conkieController', function($scope, $interval, $timeout) {
 	});
 	// }}}
 	// Periodically clean up redundent data for all charts {{{
-	$interval(function() {
-		console.log('CLEAN!');
+	var cleaner = function() {
+		console.log('Beginning data clean');
+		var cleanStartTime = Date.now();
 		var cleanTo = Date.now() - options.chartPeriod;
-		_.forEach($scope.charts, function(chart, id) {
+		_.forEach($scope.charts, function(chart, chartId) {
 			_.forEach(chart.series, function(series, seriesIndex) {
 				// Shift all data if the date has fallen off the observed time range
-				console.log('CLEAN', id, seriesIndex, series.data);
+				var beforeLength = series.data.length;
 				series.data = _.dropWhile(series.data, function(d) {
 					return (d[0] < cleanTo);
 				});
-				console.log('CLEANS', id, series.data);
+				console.log('Cleaned charts.' + chartId + '.series.' + seriesIndex + ' from length=' + beforeLength + ' now=' + series.data.length);
 			});
 		});
-	}, options.chartPeriodCleanup);
+		console.log('End data clean. Time taken =' + (Date.now() - cleanStartTime) + 'ms');
+		$timeout(cleaner, options.chartPeriodCleanup);
+	};
+	$timeout(cleaner, options.chartPeriodCleanup);
 	// }}}
 	// }}}
 

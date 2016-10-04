@@ -6,6 +6,15 @@ var electron = require('electron');
 var Highcharts = require('highcharts');
 var moment = require('moment');
 // }}}
+// Replace console.log -> ipcRenderer.sendMessage('console') + original console.log {{{
+console.logReal = console.log;
+console.log = function() {
+	var args = Array.prototype.slice.call(arguments, 0);
+
+	electron.ipcRenderer.send.apply(this, ['console'].concat(args));
+	console.logReal.apply(this, args);
+};
+// }}}
 
 
 // User configurable options
@@ -406,4 +415,6 @@ app.controller('conkieController', function($scope, $interval, $timeout) {
 		}],
 	}, $scope.charts.template);
 	// }}}
+
+	console.log('Theme controller loaded');
 });

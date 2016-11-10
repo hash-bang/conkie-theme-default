@@ -8,7 +8,6 @@
 		<link href="<%=paths.modules%>/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
 		<link href="<%=paths.theme%>/style.css" rel="stylesheet" type="text/css"/>
 		<script src="<%=paths.theme%>/app.js"></script>
-		<script src="<%=paths.modules%>/highcharts-ng/dist/highcharts-ng.min.js"></script>
 
 		<!-- Meta options passed to Conkie -->
 		<meta name="conkie-window-type" content="desktop"/>
@@ -34,7 +33,7 @@
 			</h1>
 			<div class="row">
 				<div class="col-xs-8">
-					<highchart config="charts.battery"></highchart>
+					<graph data="charts.battery.data" config="charts.battery.config"></graph>
 				</div>
 				<div class="col-xs-4 text-right">
 					<div class="row">{{stats.battery.percent | percent}}</div>
@@ -79,7 +78,7 @@
 			</div>
 			<div class="row">
 				<div class="col-xs-8">
-					<highchart config="charts[adapter.interface]"></highchart>
+					<graph data="charts[adapter.interface].data" config="charts[adapter.interface].config"></graph>
 				</div>
 				<div class="col-xs-4 text-right">
 					<div class="row">{{adapter.upSpeed | byteSize:true}} Up</div>
@@ -92,7 +91,7 @@
 			<h1 class="text-rule">Memory</h1>
 			<div class="row">
 				<div class="col-xs-8">
-					<highchart config="charts.memory"></highchart>
+					<graph data="charts.memory.data" config="charts.memory.config"></graph>
 				</div>
 				<div class="col-xs-4 text-right">
 					<div class="row">{{stats.memory.free | byteSize}} Fr</div>
@@ -105,7 +104,7 @@
 			<h1 class="text-rule">CPU</h1>
 			<div class="row">
 				<div class="col-xs-8">
-					<highchart config="charts.cpu"></highchart>
+					<graph data="charts.cpu.data" config="charts.cpu.config"></graph>
 				</div>
 				<div class="col-xs-4 text-right">
 					<div class="row">{{stats.cpu.usage | percent}}</div>
@@ -136,7 +135,7 @@
 			<h1 class="text-rule">Disk I/O</h1>
 			<div class="row">
 				<div class="col-xs-8">
-					<highchart config="charts.io"></highchart>
+					<graph data="charts.io.data" config="charts.io.config"></graph>
 				</div>
 				<div class="col-xs-4 text-right">
 					<div class="row">{{stats.io.totalRead}} Kb</div>

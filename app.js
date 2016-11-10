@@ -1,10 +1,10 @@
 // Imports {{{
 var _ = require('lodash');
-var $ = require('jquery');
+var $ = jQuery = require('jquery');
 var angular = require('angular');
 var electron = require('electron');
-var Highcharts = require('highcharts');
 var moment = require('moment');
+var sparklines = require('jquery-sparkline');
 // }}}
 // Replace console.log -> ipcRenderer.sendMessage('console') + original console.log {{{
 console.logReal = console.log;
@@ -55,9 +55,7 @@ var options = {
 // -------------------------------------------
 
 
-var app = angular.module('app', [
-	'highcharts-ng',
-]);
+var app = angular.module('app', []);
 
 
 // Angular / Filters {{{
@@ -147,6 +145,27 @@ app.filter('percent', function() {
 
 // }}}
 
+app.directive('graph', function() {
+	return {
+		scope: {
+			data: '=',
+			config: '=',
+		},
+		restrict: 'E',
+		template: '',
+		controller: function($scope) {
+			// Implied: $scope.elem;
+			$scope.$watchCollection('data', function() {
+				if (!$scope.elem || !$scope.data) return; // Element or data not bound yet
+				$scope.elem.sparkline($scope.data, $scope.config);
+			});
+		},
+		link: function($scope, elem, attr, ctrl) {
+			$scope.elem = $(elem);
+		},
+	};
+});
+
 /**
 * The main Conkie controller
 * Each of the data feeds are exposed via the 'stats' structure and correspond to the output of [Conkie-Stats](https://github.com/hash-bang/Conkie-Stats)
@@ -169,18 +188,18 @@ app.controller('conkieController', function($scope, $interval, $timeout) {
 					$scope.stats.battery = $scope.stats.power.find(function(dev) {
 						return (_.includes(options.mainBattery, dev.device));
 					});
-					if ($scope.stats.battery) $scope.charts.battery.series[0].data.push([now, $scope.stats.battery.percent]);
+					if ($scope.stats.battery) $scope.charts.battery.data.push([now, $scope.stats.battery.percent]);
 				}
 				// }}}
 
 				// .stats.io {{{
-				if (_.has($scope.stats, 'io.totalRead') && isFinite($scope.stats.io.totalRead)) $scope.charts.io.series[0].data.push([now, $scope.stats.io.totalRead]);
+				if (_.has($scope.stats, 'io.totalRead') && isFinite($scope.stats.io.totalRead)) $scope.charts.io.data.push([now, $scope.stats.io.totalRead]);
 				// }}}
 
 				// .stats.memory {{{
 				if (_.has($scope.stats, 'memory.used') && isFinite($scope.stats.memory.used)) {
-					if ($scope.stats.memory.total) $scope.charts.memory.yAxis.max = $scope.stats.memory.total;
-					$scope.charts.memory.series[0].data.push([now, $scope.stats.memory.used]);
+					if ($scope.stats.memory.total) $scope.charts.memory.config.chartRangeMaxX = $scope.stats.memory.total;
+					$scope.charts.memory.data.push([now, $scope.stats.memory.used]);
 				}
 				// }}}
 
@@ -189,36 +208,25 @@ app.controller('conkieController', function($scope, $interval, $timeout) {
 					$scope.stats.net.forEach(function(adapter) {
 						var id = adapter.interface; // Use the adapter interface name as the chart name
 						// Not seen this adapter before - create a chart object {{{
-						if (!$scope.charts[id]) $scope.charts[id] = _.defaultsDeep({
-							yAxis: {
-								min: 0,
-								max: null,
-							},
-							series: [
-								{
-									// name: 'Download',
-									data: [],
-									color: '#FFFFFF',
-								},
-								{
-									name: 'Upload',
-									color: '#606060',
-									fillColor: 'rgba(144,144,144,0.25)',
-									data: [],
-								},
-							],
-						}, $scope.charts.template);
+						if (!$scope.charts[id]) {
+							$scope.charts[id] = {
+								data: [],
+								config: $scope.charts.template.config,
+							};
+						}
 						// }}}
 						// Append bandwidth data to the chart {{{
-						if (isFinite(adapter.downSpeed)) $scope.charts[id].series[0].data.push([now, adapter.downSpeed]);
-						if (isFinite(adapter.upSpeed)) $scope.charts[id].series[1].data.push([now, adapter.upSpeed]);
+						if (isFinite(adapter.downSpeed)) $scope.charts[id].data.push([now, adapter.downSpeed]);
+						// if (isFinite(adapter.upSpeed)) $scope.charts[id].series[1].data.push([now, adapter.upSpeed]);
+
+						if (($scope.charts[id].data.length % 100) == 0) console.log('APPEND stats', $scope.charts[id].data.length);
 						// }}}
 					});
 				}
 				// }}}
 
 				// .stats.system {{{
-				if (_.has($scope.stats, 'cpu.usage') && isFinite($scope.stats.cpu.usage)) $scope.charts.cpu.series[0].data.push([now, $scope.stats.cpu.usage]);
+				if (_.has($scope.stats, 'cpu.usage') && isFinite($scope.stats.cpu.usage)) $scope.charts.cpu.data.push([now, $scope.stats.cpu.usage]);
 				// }}}
 
 				// META: .stats.netTotal {{{
@@ -232,12 +240,6 @@ app.controller('conkieController', function($scope, $interval, $timeout) {
 						upSpeed: 0,
 					});
 				}
-				// }}}
-
-				// Change the periodStart of each chart {{{
-				_.forEach($scope.charts, function(chart, id) {
-					chart.options.xAxis.periodStart = new Date(now - options.chartPeriod);
-				});
 				// }}}
 				// }}}
 
@@ -266,14 +268,12 @@ app.controller('conkieController', function($scope, $interval, $timeout) {
 		var cleanStartTime = Date.now();
 		var cleanTo = Date.now() - options.chartPeriod;
 		_.forEach($scope.charts, function(chart, chartId) {
-			_.forEach(chart.series, function(series, seriesIndex) {
-				// Shift all data if the date has fallen off the observed time range
-				var beforeLength = series.data.length;
-				series.data = _.dropWhile(series.data, function(d) {
-					return (d[0] < cleanTo);
-				});
-				console.log('Cleaned charts.' + chartId + '.series.' + seriesIndex + ' from length=' + beforeLength + ' now=' + series.data.length);
+			// Shift all data if the date has fallen off the observed time range
+			var beforeLength = chart.data.length;
+			chart.data = _.dropWhile(chart.data, function(d) {
+				return (d[0] < cleanTo);
 			});
+			console.log('Cleaned charts.' + chartId + ' from length=' + beforeLength + ' now=' + chart.data.length);
 		});
 		console.log('End data clean. Time taken =' + (Date.now() - cleanStartTime) + 'ms');
 		$timeout(cleaner, options.chartPeriodCleanup);
@@ -291,129 +291,33 @@ app.controller('conkieController', function($scope, $interval, $timeout) {
 	// Charts {{{
 	$scope.charts = {};
 	$scope.charts.template = {
-		size: {
+		config: {
 			width: 150,
 			height: 33,
-		},
-		options: {
-			chart: {
-				animation: false,
-				borderWidth: 0,
-				type: 'area',
-				margin: [2, 0, 2, 0],
-				backgroundColor: null,
-				borderWidth: 0,
-				style: {
-					border: '1px solid white',
-				},
-			},
-			credits: {
-				enabled: false
-			},
-			title: {
-				text: ''
-			},
-			xAxis: {
-				type: 'datetime',
-				periodStart: new Date(Date.now() - options.chartPeriod),
-				labels: {
-					enabled: false
-				},
-				title: {
-					text: null
-				},
-				startOnTick: false,
-				endOnTick: false,
-				tickPositions: [],
-			},
-			yAxis: {
-				labels: {
-					enabled: false
-				},
-				title: {
-					text: null
-				},
-				endOnTick: false,
-				startOnTick: false,
-				tickPositions: [0],
-			},
-			legend: {
-				enabled: false,
-			},
-			tooltip: {
-				enabled: false,
-			},
-			plotOptions: {
-				series: {
-					animation: false,
-					lineWidth: 1,
-					shadow: false,
-					states: {
-						hover: {
-							lineWidth: 1
-						}
-					},
-					marker: {
-						radius: 1,
-						states: {
-							hover: {
-								radius: 2
-							}
-						}
-					},
-					fillOpacity: 0.25
-				},
-				column: {
-					negativeColor: '#910000',
-					borderColor: 'silver'
-				},
-			},
+			lineColor: '#FFF',
+			fillColor: '#CCC',
 		},
 	};
 
 	$scope.charts.battery = _.defaultsDeep({
-		yAxis: {
-			min: 0,
-			max: 100,
-		},
-		series: [{
-			data: [],
-			color: '#FFFFFF',
-		}],
-	}, $scope.charts.template);
+		data: [],
+		config: $scope.charts.template.config,
+	});
 
-	$scope.charts.memory = _.defaultsDeep({
-		yAxis: {
-			min: 0,
-			max: null, // Gets corrected on next stats cycle
-		},
-		series: [{
-			data: [],
-			color: '#FFFFFF',
-		}],
-	}, $scope.charts.template);
+	$scope.charts.memory = {
+		data: [],
+		config: $scope.charts.template.config,
+	};
 
-	$scope.charts.cpu = _.defaultsDeep({
-		yAxis: {
-			min: 0,
-			max: 100,
-		},
-		series: [{
-			data: [],
-			color: '#FFFFFF',
-		}],
-	}, $scope.charts.template);
+	$scope.charts.cpu = {
+		data: [],
+		config: $scope.charts.template.config,
+	};
 
-	$scope.charts.io = _.defaultsDeep({
-		yAxis: {
-			min: 0,
-			max: null,
-		},
-		series: [{
-			data: [],
-			color: '#FFFFFF',
-		}],
-	}, $scope.charts.template);
+	$scope.charts.io = {
+		data: [],
+		config: $scope.charts.template.config,
+	};
 	// }}}
 
 	console.log('Theme controller loaded');

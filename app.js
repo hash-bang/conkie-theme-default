@@ -3,8 +3,8 @@ var _ = require('lodash');
 var $ = jQuery = require('jquery');
 var angular = require('angular');
 var electron = require('electron');
+var Highcharts = require('highcharts');
 var moment = require('moment');
-var sparklines = require('jquery-sparkline');
 // }}}
 // Replace console.log -> ipcRenderer.sendMessage('console') + original console.log {{{
 console.logReal = console.log;
@@ -182,6 +182,13 @@ app.controller('conkieController', function($scope, $interval, $timeout) {
 	// .stats - backend-IPC provided stats object {{{
 	$scope.stats = {}; // Stats object (gets updated via IPC)
 
+	/**
+	* Object to hold when we last had data updates - each key is the module, each value is the unix timestamp
+	* Since conkie-stats can provide different modules at different intervals we need to track when the mod last updated its info so we know whether to accept it as a new entry within a chart
+	* @type {Object}
+	*/
+	$scope.lastUpdate = {};
+
 	electron.ipcRenderer
 		// Event: updateStats {{{
 		.on('updateStats', function(e, data) {
@@ -197,22 +204,22 @@ app.controller('conkieController', function($scope, $interval, $timeout) {
 					$scope.stats.battery = $scope.stats.power.find(function(dev) {
 						return (_.includes(options.mainBattery, dev.device));
 					});
-					if ($scope.stats.battery) $scope.charts.battery.data.push([now, $scope.stats.battery.percent]);
+					if ($scope.stats.battery) $scope.charts.battery.series[0].data.push([now, $scope.stats.battery.percent]);
 				}
 				// }}}
 
 				// .stats.io {{{
 				if (_.has($scope.stats, 'io.totalRead') && isFinite($scope.stats.io.totalRead) && (!$scope.lastUpdate.io || $scope.lastUpdate.io != data.lastUpdate.io)) {
 					$scope.lastUpdate.io = data.lastUpdate.io;
-					$scope.charts.io.data.push([now, $scope.stats.io.totalRead]);
+					$scope.charts.io.series[0].data.push([now, $scope.stats.io.totalRead]);
 				}
 				// }}}
 
 				// .stats.memory {{{
 				if (_.has($scope.stats, 'memory.used') && isFinite($scope.stats.memory.used) && (!$scope.lastUpdate.memory || $scope.lastUpdate.memory != data.lastUpdate.memory)) {
 					$scope.lastUpdate.memory = data.lastUpdate.memory;
-					if ($scope.stats.memory.total) $scope.charts.memory.config.chartRangeMaxX = $scope.stats.memory.total;
-					$scope.charts.memory.data.push([now, $scope.stats.memory.used]);
+					if ($scope.stats.memory.total) $scope.charts.memory.yAxis.max = $scope.stats.memory.total;
+					$scope.charts.memory.series[0].data.push([now, $scope.stats.memory.used]);
 				}
 				// }}}
 
@@ -255,7 +262,7 @@ app.controller('conkieController', function($scope, $interval, $timeout) {
 				// .stats.system {{{
 				if (_.has($scope.stats, 'cpu.usage') && isFinite($scope.stats.cpu.usage) && (!$scope.lastUpdate.cpu || $scope.lastUpdate.cpu != data.lastUpdate.cpu)) {
 					$scope.lastUpdate.cpu = data.lastUpdate.cpu;
-					$scope.charts.cpu.data.push([now, $scope.stats.cpu.usage]);
+					$scope.charts.cpu.series[0].data.push([now, $scope.stats.cpu.usage]);
 				}
 				// }}}
 

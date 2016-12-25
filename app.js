@@ -1,10 +1,10 @@
 // Imports {{{
 var _ = require('lodash');
-var $ = require('jquery');
+var $ = jQuery = require('jquery');
 var angular = require('angular');
 var electron = require('electron');
-var Highcharts = require('highcharts');
 var moment = require('moment');
+var sparklines = require('jquery-sparkline');
 // }}}
 // Replace console.log -> ipcRenderer.sendMessage('console') + original console.log {{{
 console.logReal = console.log;
@@ -38,6 +38,12 @@ var options = {
 		net: {
 			ignoreNoIP: true,
 			ignoreDevice: ['lo'],
+		},
+		pollFrequency: {
+			dropbox: 2000,
+			io: 5000,
+			net: 5000,
+			temperature: 5000,
 		},
 	},
 	mainBattery: ['BAT0', 'BAT1'], // Which battery to examine for power info (the first one found gets bound to $scope.stats.battery)
@@ -147,6 +153,27 @@ app.filter('percent', function() {
 
 // }}}
 
+app.directive('graph', function() {
+	return {
+		scope: {
+			data: '=',
+			config: '=',
+		},
+		restrict: 'E',
+		template: '',
+		controller: function($scope) {
+			// Implied: $scope.elem;
+			$scope.$watchCollection('data', function() {
+				if (!$scope.elem || !$scope.data) return; // Element or data not bound yet
+				$scope.elem.sparkline($scope.data, $scope.config);
+			});
+		},
+		link: function($scope, elem, attr, ctrl) {
+			$scope.elem = $(elem);
+		},
+	};
+});
+
 /**
 * The main Conkie controller
 * Each of the data feeds are exposed via the 'stats' structure and correspond to the output of [Conkie-Stats](https://github.com/hash-bang/Conkie-Stats)
@@ -165,27 +192,35 @@ app.controller('conkieController', function($scope, $interval, $timeout) {
 				// Chart data updates {{{
 
 				// .stats.power {{{
-				if ($scope.stats.power) {
+				if ($scope.stats.power && (!$scope.lastUpdate.power || $scope.lastUpdate.power != data.lastUpdate.power)) {
+					$scope.lastUpdate.power = data.lastUpdate.power;
 					$scope.stats.battery = $scope.stats.power.find(function(dev) {
 						return (_.includes(options.mainBattery, dev.device));
 					});
-					if ($scope.stats.battery) $scope.charts.battery.series[0].data.push([now, $scope.stats.battery.percent]);
+					if ($scope.stats.battery) $scope.charts.battery.data.push([now, $scope.stats.battery.percent]);
 				}
 				// }}}
 
 				// .stats.io {{{
-				if (_.has($scope.stats, 'io.totalRead') && isFinite($scope.stats.io.totalRead)) $scope.charts.io.series[0].data.push([now, $scope.stats.io.totalRead]);
+				if (_.has($scope.stats, 'io.totalRead') && isFinite($scope.stats.io.totalRead) && (!$scope.lastUpdate.io || $scope.lastUpdate.io != data.lastUpdate.io)) {
+					$scope.lastUpdate.io = data.lastUpdate.io;
+					$scope.charts.io.data.push([now, $scope.stats.io.totalRead]);
+				}
 				// }}}
 
 				// .stats.memory {{{
-				if (_.has($scope.stats, 'memory.used') && isFinite($scope.stats.memory.used)) {
-					if ($scope.stats.memory.total) $scope.charts.memory.yAxis.max = $scope.stats.memory.total;
-					$scope.charts.memory.series[0].data.push([now, $scope.stats.memory.used]);
+				if (_.has($scope.stats, 'memory.used') && isFinite($scope.stats.memory.used) && (!$scope.lastUpdate.memory || $scope.lastUpdate.memory != data.lastUpdate.memory)) {
+					$scope.lastUpdate.memory = data.lastUpdate.memory;
+					if ($scope.stats.memory.total) $scope.charts.memory.config.chartRangeMaxX = $scope.stats.memory.total;
+					$scope.charts.memory.data.push([now, $scope.stats.memory.used]);
 				}
 				// }}}
 
 				// .net {{{
-				if ($scope.stats.net) {
+				var updatedNet = false;
+				if ($scope.stats.net && (!$scope.lastUpdate.net || $scope.lastUpdate.net != data.lastUpdate.net)) {
+					$scope.lastUpdate.net = data.lastUpdate.net;
+					updatedNet = true;
 					$scope.stats.net.forEach(function(adapter) {
 						var id = adapter.interface; // Use the adapter interface name as the chart name
 						// Not seen this adapter before - create a chart object {{{
@@ -218,11 +253,14 @@ app.controller('conkieController', function($scope, $interval, $timeout) {
 				// }}}
 
 				// .stats.system {{{
-				if (_.has($scope.stats, 'cpu.usage') && isFinite($scope.stats.cpu.usage)) $scope.charts.cpu.series[0].data.push([now, $scope.stats.cpu.usage]);
+				if (_.has($scope.stats, 'cpu.usage') && isFinite($scope.stats.cpu.usage) && (!$scope.lastUpdate.cpu || $scope.lastUpdate.cpu != data.lastUpdate.cpu)) {
+					$scope.lastUpdate.cpu = data.lastUpdate.cpu;
+					$scope.charts.cpu.data.push([now, $scope.stats.cpu.usage]);
+				}
 				// }}}
 
 				// META: .stats.netTotal {{{
-				if ($scope.stats.net) {
+				if (updatedNet) {
 					$scope.stats.netTotal = $scope.stats.net.reduce(function(total, adapter) {
 						if (adapter.downSpeed) total.downSpeed += adapter.downSpeed;
 						if (adapter.upSpeed) total.upSpeed += adapter.upSpeed;

@@ -267,16 +267,14 @@ app.controller('conkieController', function($scope, $interval, $timeout) {
 				// }}}
 
 				// META: .stats.netTotal {{{
-				if (updatedNet) {
-					$scope.stats.netTotal = $scope.stats.net.reduce(function(total, adapter) {
-						if (adapter.downSpeed) total.downSpeed += adapter.downSpeed;
-						if (adapter.upSpeed) total.upSpeed += adapter.upSpeed;
-						return total;
-					}, {
-						downSpeed: 0,
-						upSpeed: 0,
-					});
-				}
+				$scope.stats.netTotal = $scope.stats.net.reduce(function(total, adapter) {
+					if (adapter.downSpeed) total.downSpeed += adapter.downSpeed;
+					if (adapter.upSpeed) total.upSpeed += adapter.upSpeed;
+					return total;
+				}, {
+					downSpeed: 0,
+					upSpeed: 0,
+				});
 				// }}}
 
 				// Change the periodStart of each chart {{{

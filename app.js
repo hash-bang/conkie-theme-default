@@ -42,6 +42,7 @@ var options = {
 		pollFrequency: {
 			dropbox: 2000,
 			io: 5000,
+			memory: 5000,
 			net: 5000,
 			temperature: 5000,
 		},

@@ -1,6 +1,6 @@
 {
   "name": "conkie-theme-default",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "description": "Example Conkie theme using a white styled sidebar",
   "main": "index.html",
   "keywords": [
@@ -14,13 +14,13 @@
   "author": "Matt Carter <m@ttcarter.com> (https://github.com/hash-bang)",
   "license": "MIT",
   "dependencies": {
-    "angular": "^1.5.8",
+    "angular": "^1.6.4",
     "bootstrap": "^3.3.7",
-    "font-awesome": "^4.6.3",
-    "highcharts": "^4.2.7",
-    "highcharts-ng": "0.0.12",
-    "jquery": "^3.1.1",
-    "lodash": "^4.16.1",
-    "moment": "^2.15.1"
+    "font-awesome": "^4.7.0",
+    "highcharts": "^4.1.10",
+    "highcharts-ng": "0.0.13",
+    "jquery": "^3.2.1",
+    "lodash": "^4.17.4",
+    "moment": "^2.18.1"
   }
 }

@@ -37,7 +37,7 @@ var options = {
 		topProcessCount: 5,
 		net: {
 			ignoreNoIP: true,
-			ignoreDevice: ['lo', 'tun0'],
+			ignoreDevice: ['lo', 'wg0', 'tun0'],
 		},
 		pollFrequency: {
 			dropbox: 2000,
